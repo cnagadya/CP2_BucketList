@@ -249,4 +249,25 @@ class BucketlistTestcase(unittest.TestCase):
         result = json.loads(del_response.data)
         self.assertEqual("Invalid resource URI", result['message'])
 
-    
+    def test_add_item_to_bucket(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 201)
+        result = json.loads(add_item_response.data)
+        self.assertIn("Successfully Added item with details", str(result))
+
+    def test_add_item_to_bucket_no_access(self):
+        pass
+
+    def test_add_item_to_bucket_invalid_id(self):
+        pass
+
+    def test_edit_item_in_bucket(self):
+        pass
+
+    def remove_item_from_bucket(self):
+        pass

@@ -1,0 +1,35 @@
+[report]
+omit = 
+    */site-packages/*
+    *__init__.py*
+    *tests/__init__.py*
+    *sqlite3*
+    *sqlite3/*
+    *encodings/ascii.py*
+    *classes/__init__.py*
+    *classes/__init__.pyc*
+    *decimal.py*
+    *numbers.py*
+    *requirements.txt*
+    *classes/.DS_Store*
+    *classes/__pycache__*
+    *.gitignore*
+    *classes/.coverage*
+    *tests/test_amity.py*
+    *term.py*
+    *database/database.py*
+    *unittest/mock.py*
+    *ctypes/*
+    *json/*
+    *http/*
+    *migrations/*
+    *html/*
+    *_strptime*
+    *encodings/*
+    *mimetypes*
+    *hmac*
+    *stringprep*
+    *uuid*
+    *app.bucketlist_api_v1.errors.py*
+    *app.models*
+    

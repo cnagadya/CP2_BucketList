@@ -111,3 +111,86 @@ class BucketlistTestcase(unittest.TestCase):
         self.assertEqual(login_response.status_code, 400)
         result = json.loads(login_response.data)
         self.assertEqual("Enter the username and password", result['message'])
+
+    def test_add_bucketlist(self):
+        token = self.login_user()
+        response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Hawaiiiii"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 201)
+        result = json.loads(response.data)
+        self.assertIn("Hawaiiiii", str(result))
+
+    def test_invalid_token(self):
+        response = self.client.get("/api/v1/bucketlists/1", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer abcd"})
+        self.assertEqual(response.status_code, 401)
+        result = json.loads(response.data)
+        self.assertEqual(
+            "Enter a valid authentication token code", result['message'])
+
+    def test_view_all_bucketlists(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Visit every country in the world"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        response = self.client.get("/api/v1/bucketlists", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.data)
+        self.assertIn("Visit every country in the world", str(result))
+
+    def test_view_all_bucketlists_none_added(self):
+        token = self.login_user()
+        response = self.client.get("/api/v1/bucketlists", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.data)
+        self.assertEqual(
+            "You have not added any bucketlist yet", result["message"])
+
+    def test_view_bucketlist_no_items_added(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Visit every country in the world"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        response = self.client.get("/api/v1/bucketlists/1", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.data)
+        self.assertIn(
+            "Visit every country in the world has no items", str(result))
+
+    def test_view_single_bucketlist(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        response = self.client.get("/api/v1/bucketlists/1", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 200)
+        result = json.loads(response.data)
+        self.assertIn("Swim in the ocean", str(result))
+        self.assertIn("Bucketlist Items", str(result))
+
+    def test_view_bucketlist_no_access(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        new_token = self.login_other_user()
+        response = self.client.get("/api/v1/bucketlists/1", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + new_token})
+        self.assertEqual(response.status_code, 401)
+        result = json.loads(response.data)
+        self.assertEqual(
+            "You are not authorised to view this bucketlist!", result['message'])
+
+    def test_view_bucketlist_invalid_id(self):
+        token = self.login_user()
+        response = self.client.get("/api/v1/bucketlists/1", headers={
+                                   "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(response.status_code, 404)
+        result = json.loads(response.data)
+        self.assertEqual("Invalid resource URI", result['message'])
+
+    

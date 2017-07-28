@@ -193,4 +193,36 @@ class BucketlistTestcase(unittest.TestCase):
         result = json.loads(response.data)
         self.assertEqual("Invalid resource URI", result['message'])
 
-    
+    def test_edit_bucketlist(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        edit_response = self.client.put("/api/v1/bucketlists/1", data=json.dumps(
+            {"name": "Swim in the Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(edit_response.status_code, 202)
+        result = json.loads(edit_response.data)
+        self.assertIn("Swim in the Indian ocean", str(result))
+
+    def test_edit_bucketlist_no_access(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        new_token = self.login_other_user()
+        edit_response = self.client.put("/api/v1/bucketlists/1", data=json.dumps(
+            {"name": "Swim in the Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + new_token})
+        self.assertEqual(edit_response.status_code, 401)
+        result = json.loads(edit_response.data)
+        self.assertEqual(
+            "You are not authorised to modify this bucketlist!", result['message'])
+
+    def test_edit_bucketlist_invalid_id(self):
+        token = self.login_user()
+        edit_response = self.client.put("/api/v1/bucketlists/1", data=json.dumps(
+            {"name": "Swim in the Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(edit_response.status_code, 404)
+        result = json.loads(edit_response.data)
+        self.assertEqual("Invalid resource URI", result['message'])
+
+   

@@ -33,6 +33,6 @@ omit =
     *app.bucketlist_api_v1.errors.py*
     *app.models*
     *database/*
-    *.vscode/*
-    *migrations/*
+    *.vscode*
+    *migrations//*
     

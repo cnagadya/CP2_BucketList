@@ -87,7 +87,7 @@ class BucketlistTestcase(unittest.TestCase):
         response = self.client.post("/api/v1/auth/register", data=json.dumps(
             self.data), headers={"content-type": "application/json"})
         result = json.loads(response.data)
-        self.assertEqual("Username can not have just numbers",
+        self.assertEqual("Invalid value entered for username and / or password",
                          result["message"])
 
     def test_login(self):

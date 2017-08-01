@@ -43,4 +43,3 @@ def verify_auth_token(token, unused):
 def invalid_token():
     return jsonify({'message': 'Enter a valid authentication token code'}), 401
 
-

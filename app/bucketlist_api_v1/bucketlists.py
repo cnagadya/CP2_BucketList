@@ -45,8 +45,11 @@ def bucketlists():
 
     else:
         # implementation for creating a bucketlist
+        
         blist = Bucketlist()
         blist.import_data(request.json)
+        if Bucketlist.query.filter_by(name=blist.name).first():
+            return jsonify({"message": "Bucketlist '{}' already exists".format(blist.name)}), 409
         if not blist.name:
             return jsonify({"message": "Bucketlist name is required"}), 400
         else:
@@ -93,6 +96,8 @@ def single_bucketlist(id):
         if bucketlist.owner != g.user.id:
             return jsonify({'message': 'You are not authorised to modify this bucketlist!'}), 401
         bucketlist.import_data(request.json)
+        if Bucketlist.query.filter_by(name=bucketlist.name).first():
+            return jsonify({"message": "Bucketlist '{}' already exists".format(bucketlist.name)}), 409
         db.session.commit()
         return jsonify({'Successfully Updated Bucketlist with details':
                         [{

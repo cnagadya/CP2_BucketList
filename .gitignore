@@ -105,6 +105,5 @@ cover/
 .DS_Store
 
 .vscode/
-database/test.db
-database/dev.db
+
 migrations/

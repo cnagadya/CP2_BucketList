@@ -7,16 +7,16 @@ import validators
 
 @blist_api.route('/auth/register', methods=['POST'])
 def register():
-    username = request.json.get('username')
-    email_add = request.json.get('email_add')
+    username = str(request.json.get('username')).strip()
+    email_add = str(request.json.get('email_add')).strip()
     password = request.json.get('password')
 
     if not username or not email_add or not password:
         return jsonify({"message": "Enter the username, email address and password to create account"}), 400
     if not validators.email(email_add):
         return jsonify({"message": "Email address should have 'email@example.com' format"}), 400
-    if username.isdigit():
-        return jsonify({"message": "Username can not have just numbers"})
+    if username.isdigit() or username.isspace() or password.isspace():
+        return jsonify({"message": "Invalid value entered for username and / or password"})
     if User.query.filter_by(username=username).first():
         return jsonify({"message": "User with username '{}' already exists".format(username)}), 409
     user = User(username=username, email_add=email_add)

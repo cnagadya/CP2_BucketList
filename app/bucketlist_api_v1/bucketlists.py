@@ -38,7 +38,7 @@ def bucketlists():
                                          "Date Modified": "Not applicable" if bucketlist.modified == bucketlist.created else bucketlist.modified,
                                          "Created by": bucketlist.owner,
                                          "ID": bucketlist.id
-                                         } for bucketlist in paged_bucket.items] if len(paged_bucket.items) > 1 else "No bucketlists to display",
+                                         } for bucketlist in paged_bucket.items] if len(paged_bucket.items) > 0 else "No bucketlists to display",
                         "Previous Page": paged_bucket.prev_num if paged_bucket.has_prev else "No previous bucketlists",
                         "Next Page": paged_bucket.next_num if paged_bucket.has_next else "No more bucketlists to view"
                         }), 200

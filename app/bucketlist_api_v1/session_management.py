@@ -35,5 +35,5 @@ def login():
         return jsonify({"message": "Enter the username and password"}), 400
     user = User.query.filter_by(username=username).first()
     if not user or not user.verify_password(password):
-        return jsonify({"message": "Invalid username or password"}), 4032
+        return jsonify({"message": "Invalid username or password"}), 403
     return jsonify({'Generated Token': user.generate_token()}), 201

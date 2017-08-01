@@ -2,14 +2,13 @@
 from datetime import datetime
 from dateutil import parser as datetime_parser
 from dateutil.tz import tzutc
-from flask import url_for, current_app, g
+from flask import url_for, current_app, g, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 
 from itsdangerous import (
     TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
-
 
 class ValidationError(ValueError):
     pass
@@ -55,18 +54,14 @@ class Bucketlist(db.Model):
     owner = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     def import_data(self, data):
-        try:
+        if 'name' not in data.keys():
+            return jsonify({"message": "Bucketlist name is required"}), 400
+        else:
+ 
             self.name = data['name']
             self.owner = g.user.id
-            # self.owner = data
-            # self.created = datetime_parser.parse(
-            # #     data['created']).astimezone(tzutc()).replace(tzinfo=None)
-            # self.modified = datetime_parser.parse(
-            #     data['modified']).astimezone(tzutc()).replace(tzinfo=None)
-        except KeyError as e:
-            raise ValidationError('Bucketlist not ' +
-                                  e.args[0] + '. Crosscheck the name provided')
-        return self
+                
+            return self
 
 
 class Item(db.Model):
@@ -78,14 +73,11 @@ class Item(db.Model):
     done = db.Column(db.Boolean, default=False)
 
     def import_data(self, data, bucketlist_id):
-        try:
+        if 'name' not in data and 'done' not in data:
+            return "error"
+        if 'name' in data:
             self.name = data['name']
-            if 'done' in data:
-                self.done = data['done']
-            self.list_id = bucketlist_id
-
-        
-        except KeyError as e:
-            raise ValidationError(
-                'Invalid item ' + e.args[0])
+        if 'done' in data:
+            self.done = data['done']
+        self.list_id = bucketlist_id
         return self

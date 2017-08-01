@@ -100,10 +100,11 @@ ENV/
 
 # mypy
 .mypy_cache/
-
-randomstuff.py
 cover/
 .idea
 .DS_Store
-/Amity.webarchive
-.db/
+
+.vscode/
+database/test.db
+database/dev.db
+migrations/

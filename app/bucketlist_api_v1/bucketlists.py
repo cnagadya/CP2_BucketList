@@ -50,7 +50,7 @@ def bucketlists():
         blist.import_data(request.json)
         if Bucketlist.query.filter_by(name=blist.name).first():
             return jsonify({"message": "Bucketlist '{}' already exists".format(blist.name)}), 409
-        if not blist.name:
+        if not blist.name or str(blist.name).isspace():
             return jsonify({"message": "Bucketlist name is required"}), 400
         else:
             if str(blist.name).isdigit():
@@ -79,7 +79,7 @@ def single_bucketlist(id):
             modified = "Not Applicable. This bucketlist has not yet been modified"
         else:
             modified = bucketlist.modified
-        bucketlist_items = [item.name for item in bucketlist.items.all()]
+        bucketlist_items = [{"Item Name":item.name, "Item ID":item.id} for item in bucketlist.items.all()]
         data = {
             "Bucketlist Name": bucketlist.name,
             "Bucketlist Items": bucketlist_items if bucketlist_items else str(bucketlist.name) + " has no items",
@@ -98,6 +98,8 @@ def single_bucketlist(id):
         bucketlist.import_data(request.json)
         if Bucketlist.query.filter_by(name=bucketlist.name).first():
             return jsonify({"message": "Bucketlist '{}' already exists".format(bucketlist.name)}), 409
+        if str(bucketlist.name).isspace():
+            return jsonify({"message": "Enter a valid bucketlist name"}), 400
         db.session.commit()
         return jsonify({'Successfully Updated Bucketlist with details':
                         [{

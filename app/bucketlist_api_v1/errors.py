@@ -4,7 +4,7 @@ from . import blist_api
 
 @blist_api.app_errorhandler(400)
 def bad_request(e):
-    return jsonify({'message': "Missing Required Paremeters"}), 400
+    return jsonify({'message': "Either Required Paremeters are missing or invalid data has been entered"}), 400
 
 
 

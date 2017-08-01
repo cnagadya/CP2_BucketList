@@ -18,7 +18,7 @@ def register():
     if username.isdigit():
         return jsonify({"message": "Username can not have just numbers"})
     if User.query.filter_by(username=username).first():
-        return jsonify({"message": "User with username '{}' already exists".format(username)})
+        return jsonify({"message": "User with username '{}' already exists".format(username)}), 409
     user = User(username=username, email_add=email_add)
     user.set_password(password)
     db.session.add(user)

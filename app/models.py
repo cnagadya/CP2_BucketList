@@ -58,7 +58,7 @@ class Bucketlist(db.Model):
             return jsonify({"message": "Bucketlist name is required"}), 400
         else:
  
-            self.name = data['name']
+            self.name = str(data['name']).strip()
             self.owner = g.user.id
                 
             return self
@@ -73,10 +73,12 @@ class Item(db.Model):
     done = db.Column(db.Boolean, default=False)
 
     def import_data(self, data, bucketlist_id):
-        if 'name' not in data and 'done' not in data:
+        if  not data['name']  and not  data['done']:
             return "error"
+        if str(data['name']).isspace():
+            return "blank" 
         if 'name' in data:
-            self.name = data['name']
+            self.name = str(data['name']).strip()
         if 'done' in data:
             self.done = data['done']
         self.list_id = bucketlist_id

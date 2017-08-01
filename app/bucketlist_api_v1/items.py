@@ -17,7 +17,7 @@ def add_item(id):
         return jsonify({'message': "You have no access to this bucketlist"}), 401
     item = Item()
     item.import_data(request.json, bucketlist.id)
-    if not item.name:
+    if not item.name or str(item.name).isspace():
         return jsonify({"message": "Item name is required"}), 400
     if item.done and item.done not in (0,1):
         return jsonify({"message":"Done can only either be '1' for True or '0' for False"}), 400
@@ -43,20 +43,24 @@ def modify_item(id, item_id):
             return jsonify({'message': "You have no access to this bucketlist"}), 401
         item = Item.query.filter_by(list_id=id, id=item_id).first()
         if item:
-            if(item.import_data(request.json, bucketlist.id) == "error"):
+            if item.import_data(request.json, bucketlist.id) == "error":
                 return jsonify({"message": "At least item 'name' or 'Done' is required"}), 400
             else:
-                if item.done not in (0,1):
-                    return jsonify({"message":"Done can only either be '1' for True or '0' for False"})
-                bucketlist.modified = datetime.now()
-                db.session.commit()
-            # implementation for editing a bucketlist item
-                return jsonify({'Successfully Changed to':
-                                [{"Item name": item.name,
-                                "Item ID": item.id,
-                                "Done": item.done
-                                }]
-                                }), 201
+                print("name ="+item.name)
+                if item.import_data(request.json, bucketlist.id) == "blank" :
+                    return jsonify({"message":"Invalid item name"}), 400
+                elif item.done not in (0,1):
+                    return jsonify({"message":"Done can only either be '1' for True or '0' for False"}), 400
+                else:
+                    bucketlist.modified = datetime.now()
+                    db.session.commit()
+                    # implementation for editing a bucketlist item
+                    return jsonify({'Successfully Changed to':
+                                    [{"Item name": item.name,
+                                    "Item ID": item.id,
+                                    "Done": item.done
+                                    }]
+                                    }), 201
         else:
             return jsonify({"message": "Invalid bucketlist or item id "}), 404
     else:

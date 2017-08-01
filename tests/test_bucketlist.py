@@ -225,13 +225,21 @@ class BucketlistTestcase(unittest.TestCase):
         result = json.loads(edit_response.data)
         self.assertEqual("Invalid resource URI", result['message'])
 
-    def delete_bucketlist(self):
-        pass
-
-    def delete_bucketlist_no_access(self):
+    def test_delete_bucketlist(self):
         token = self.login_user()
-        add_response = self.client.post("/api/v1/bucketlists", headers={
-                                        "content-type": "application/json", "Authorization": "Bearer " + token})
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the oceans"}),headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        del_response = self.client.delete("/api/v1/bucketlists/1", headers={
+                                          "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(del_response.status_code, 200)
+        result = json.loads(del_response.data)
+        self.assertIn("Bucketlist successfully deleted", str(result))
+
+    def test_delete_bucketlist_no_access(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists",data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
         self.assertEqual(add_response.status_code, 201)
         new_token = self.login_other_user()
         del_response = self.client.delete("/api/v1/bucketlists/1", headers={
@@ -241,10 +249,10 @@ class BucketlistTestcase(unittest.TestCase):
         self.assertEqual(
             "You are not authorised to delete this bucketlist!", result['message'])
 
-    def delete_bucketlist_invalid_id(self):
+    def test_delete_bucketlist_invalid_id(self):
         token = self.login_user()
-        del_response = self.client.delete("/api/v1/bucketlists/1", headers={
-                                          "content-type": "application/json", "Authorization": "Bearer " + token})
+        del_response = self.client.delete("/api/v1/bucketlists/1",data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
         self.assertEqual(del_response.status_code, 404)
         result = json.loads(del_response.data)
         self.assertEqual("Invalid resource URI", result['message'])
@@ -260,14 +268,82 @@ class BucketlistTestcase(unittest.TestCase):
         result = json.loads(add_item_response.data)
         self.assertIn("Successfully Added item with details", str(result))
 
+    @unittest.skip
+    def test_add_item_to_bucket_changes_date_modified(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 201)
+        view_bucket_response = self.client.get("/api/v1/bucketlists/1", headers={
+            "content-type": "application/json", "Authorization": "Bearer " + token})
+        result = json.loads(view_bucket_response.data)
+        self.assertNotIn(
+            "This bucketlist has not yet been modified", str(result))
+
     def test_add_item_to_bucket_no_access(self):
-        pass
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists",  data=json.dumps({"name": "Swim in the ocean"}), headers={
+                                        "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        new_token = self.login_other_user()
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + new_token})
+        self.assertEqual(add_item_response.status_code, 401)
+        result = json.loads(add_item_response.data)
+        self.assertEqual(
+            "You have no access to this bucketlist", result['message'])
 
     def test_add_item_to_bucket_invalid_id(self):
-        pass
+        token = self.login_user()
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 404)
+        result = json.loads(add_item_response.data)
+        self.assertIn("Invalid resource URI", str(result))
 
     def test_edit_item_in_bucket(self):
-        pass
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 201)
+        edit_item_response = self.client.put("/api/v1/bucketlists/1/items/1", data=json.dumps(
+            {"name": "The Indian Ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        result = json.loads(edit_item_response.data)
+        self.assertIn("The Indian Ocean", str(result))
 
-    def remove_item_from_bucket(self):
-        pass
+    def test_edit_item_in_bucket_no_access(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists",  data=json.dumps({"name": "Swim in the ocean"}), headers={
+                                        "content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 201)
+        new_token = self.login_other_user()
+        edit_item_response = self.client.put("/api/v1/bucketlists/1/items/1", data=json.dumps(
+            {"name": "The Indian Ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + new_token})
+        self.assertEqual(edit_item_response.status_code, 401)
+        result = json.loads(edit_item_response.data)
+        self.assertEqual(
+            "You have no access to this bucketlist", result['message'])
+
+    def test_remove_item_from_bucket(self):
+        token = self.login_user()
+        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
+            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_response.status_code, 201)
+        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
+            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
+        self.assertEqual(add_item_response.status_code, 201)
+        del_item_response = self.client.delete("/api/v1/bucketlists/1/items/1",  headers={
+                                               "content-type": "application/json", "Authorization": "Bearer " + token})
+        result = json.loads(del_item_response.data)
+        self.assertIn(
+            "Item successfully deleted from Swim in the oceans", str(result))

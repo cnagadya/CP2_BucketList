@@ -5,8 +5,9 @@
 > A REST API for an online bucketlist service
 
 ###### API Endpoints
-| POST /auth/login                         | Logs a user in                    |
+| EndPoint                                 | Functionality                     |
 |------------------------------------------|-----------------------------------|
+| POST /auth/login                         | Logs a user in                    |
 | POST /auth/register                      | Register a user                   |
 | POST /bucketlists/                       | Create a new bucket list          |
 | GET /bucketlists/                        | List all the created bucket lists |

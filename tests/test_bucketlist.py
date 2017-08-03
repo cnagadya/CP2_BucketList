@@ -94,14 +94,14 @@ class BucketlistTestcase(unittest.TestCase):
         response = self.create_user()
         login_response = self.client.post("/api/v1/auth/login", data=json.dumps(
             {"username": "Christine", "password": "1234"}), headers={"content-type": "application/json"})
-        self.assertEqual(login_response.status_code, 201)
+        self.assertEqual(login_response.status_code, 200)
         result = json.loads(login_response.data)
         self.assertIn('Generated Token', result.keys())
 
     def test_login_invalid_credentials(self):
         login_response = self.client.post("/api/v1/auth/login", data=json.dumps(
             {"username": "andela", "password": "12345"}), headers={"content-type": "application/json"})
-        self.assertEqual(login_response.status_code, 403)
+        self.assertEqual(login_response.status_code, 409)
         result = json.loads(login_response.data)
         self.assertEqual("Invalid username or password", result['message'])
 
@@ -120,8 +120,8 @@ class BucketlistTestcase(unittest.TestCase):
         result = json.loads(response.data)
         self.assertIn("Hawaiiiii", str(result))
 
-    def test_invalid_token(self):
-        response = self.client.get("/api/v1/bucketlists/1", headers={
+    def test_view_bucketlists_with_invalid_token(self):
+        response = self.client.get("/api/v1/bucketlists/", headers={
                                    "content-type": "application/json", "Authorization": "Bearer abcd"})
         self.assertEqual(response.status_code, 401)
         result = json.loads(response.data)
@@ -232,7 +232,7 @@ class BucketlistTestcase(unittest.TestCase):
         self.assertEqual(add_response.status_code, 201)
         del_response = self.client.delete("/api/v1/bucketlists/1", headers={
                                           "content-type": "application/json", "Authorization": "Bearer " + token})
-        self.assertEqual(del_response.status_code, 200)
+        self.assertEqual(del_response.status_code, 410)
         result = json.loads(del_response.data)
         self.assertIn("Bucketlist successfully deleted", str(result))
 
@@ -267,21 +267,6 @@ class BucketlistTestcase(unittest.TestCase):
         self.assertEqual(add_item_response.status_code, 201)
         result = json.loads(add_item_response.data)
         self.assertIn("Successfully Added item with details", str(result))
-
-    @unittest.skip
-    def test_add_item_to_bucket_changes_date_modified(self):
-        token = self.login_user()
-        add_response = self.client.post("/api/v1/bucketlists", data=json.dumps(
-            {"name": "Swim in the oceans"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
-        self.assertEqual(add_response.status_code, 201)
-        add_item_response = self.client.post("/api/v1/bucketlists/1/items", data=json.dumps(
-            {"name": "Indian ocean"}), headers={"content-type": "application/json", "Authorization": "Bearer " + token})
-        self.assertEqual(add_item_response.status_code, 201)
-        view_bucket_response = self.client.get("/api/v1/bucketlists/1", headers={
-            "content-type": "application/json", "Authorization": "Bearer " + token})
-        result = json.loads(view_bucket_response.data)
-        self.assertNotIn(
-            "This bucketlist has not yet been modified", str(result))
 
     def test_add_item_to_bucket_no_access(self):
         token = self.login_user()

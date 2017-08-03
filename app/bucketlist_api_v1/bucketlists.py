@@ -1,11 +1,9 @@
-from flask import jsonify, g, request, url_for
+from flask import jsonify, g, request
 from app import db
 from app.bucketlist_api_v1 import blist_api
-# from .. import db
 from app.auth import auth_token
 from app.models import Bucketlist
 from datetime import datetime
-# from bucketlist_api_v1.errors import .
 
 
 @blist_api.route('/', methods=['GET'])
@@ -16,7 +14,9 @@ def bucketlists():
         # implementation for viewing all bucketlists
         bucket = Bucketlist.query.filter_by(owner=g.user.id)
         if not bool(bucket.all()):
-            return jsonify({'message': 'You have not added any bucketlist yet'}), 200
+            return jsonify({
+                'message': 'You have not added any bucketlist yet'
+            }), 200
         page = 1 if not request.args.get(
             'page') else int(request.args.get('page'))
 
@@ -33,34 +33,56 @@ def bucketlists():
                 '%' + q + '%')).paginate(page, limit, False)
         else:
             paged_bucket = bucket.paginate(page, limit, True)
-        return jsonify({"Bucketlists": [{"name": bucketlist.name,
-                                         "Date Added": bucketlist.created,
-                                         "Date Modified": "Not applicable" if bucketlist.modified == bucketlist.created else bucketlist.modified,
-                                         "Created by": bucketlist.owner,
-                                         "ID": bucketlist.id
-                                         } for bucketlist in paged_bucket.items] if len(paged_bucket.items) > 0 else "No bucketlists to display",
-                        "Previous Page": paged_bucket.prev_num if paged_bucket.has_prev else "No previous bucketlists",
-                        "Next Page": paged_bucket.next_num if paged_bucket.has_next else "No more bucketlists to view"
-                        }), 200
+        return jsonify(
+            {
+                "Bucketlists":
+                [
+                    {
+                        "name": bucketlist.name,
+                        "Date Added": bucketlist.created,
+                        "Date Modified": "Not applicable"
+                        if bucketlist.modified == bucketlist.created
+                        else bucketlist.modified,
+                        "Created by": bucketlist.owner,
+                        "ID": bucketlist.id
+                    }
+                    for bucketlist in paged_bucket.items]
+                    if len(paged_bucket.items) > 0
+                    else "No bucketlists to display",
+                "Previous Page": paged_bucket.prev_num
+                if paged_bucket.has_prev
+                else "No previous bucketlists",
+                "Next Page": paged_bucket.next_num
+                if paged_bucket.has_next
+                else "No more bucketlists to view"
+            }), 200
 
     else:
         # implementation for creating a bucketlist
-        
+
         blist = Bucketlist()
         blist.import_data(request.json)
         if Bucketlist.query.filter_by(name=blist.name).first():
-            return jsonify({"message": "Bucketlist '{}' already exists".format(blist.name)}), 409
+            return jsonify({
+                "message": "Bucketlist '{}' already exists".format(blist.name)
+            }), 409
         if not blist.name or str(blist.name).isspace():
-            return jsonify({"message": "Bucketlist name is required"}), 400
+            return jsonify({
+                "message": "Bucketlist name is required"
+            }), 400
         else:
             if str(blist.name).isdigit():
-                return jsonify({"message": "Bucketlist name can not have just numbers"}), 400
+                return jsonify({
+                    "message": "Bucketlist name can not have just numbers"
+                }), 400
             db.session.add(blist)
             db.session.commit()
             data = {
                 "Bucketlist Name": blist.name,
                 "Date Added": blist.created}
-            return jsonify({'Successfully Created Bucketlist with details': data}), 201
+            return jsonify({
+                'Successfully Created Bucketlist with details': data
+            }), 201
 
 
 @blist_api.route('/bucketlists/<int:id>', methods=['GET', 'PUT', 'DELETE'])
@@ -70,19 +92,24 @@ def single_bucketlist(id):
         # implementation for viewing a single bucketlist
         bucketlist = Bucketlist.query.get_or_404(id)
         if bucketlist.owner != g.user.id:
-            return jsonify({'message': 'You are not authorised to view this bucketlist!'}), 401
+            return jsonify({
+                'message': 'You are not authorised to view this bucketlist!'
+            }), 401
         # bucketlist = Bucketlist.query.get_or_404(id)
         FMT = '%Y-%m-%d %H:%M:%S.%f'
         time_diff = datetime.strptime(
-            str(bucketlist.modified), FMT) - datetime.strptime(str(bucketlist.created), FMT)
+            str(bucketlist.modified), FMT) - \
+            datetime.strptime(str(bucketlist.created), FMT)
         if int(time_diff.total_seconds()) < 1:
             modified = "Not Applicable. This bucketlist has not yet been modified"
         else:
             modified = bucketlist.modified
-        bucketlist_items = [{"Item Name":item.name, "Item ID":item.id} for item in bucketlist.items.all()]
+        bucketlist_items = [{"Item Name": item.name, "Item ID": item.id}
+                            for item in bucketlist.items.all()]
         data = {
             "Bucketlist Name": bucketlist.name,
-            "Bucketlist Items": bucketlist_items if bucketlist_items else str(bucketlist.name) + " has no items",
+            "Bucketlist Items": bucketlist_items
+            if bucketlist_items else str(bucketlist.name) + " has no items",
             "Date Added": bucketlist.created,
             "Date Modified": modified,
             "Created by": bucketlist.owner,
@@ -94,10 +121,14 @@ def single_bucketlist(id):
         # implementation for updating a single bucketlist
         bucketlist = Bucketlist.query.get_or_404(id)
         if bucketlist.owner != g.user.id:
-            return jsonify({'message': 'You are not authorised to modify this bucketlist!'}), 401
+            return jsonify({
+                'message': 'You are not authorised to modify this bucketlist!'
+            }), 401
         bucketlist.import_data(request.json)
         if Bucketlist.query.filter_by(name=bucketlist.name).first():
-            return jsonify({"message": "Bucketlist '{}' already exists".format(bucketlist.name)}), 409
+            return jsonify({
+                "message":
+                "Bucketlist '{}' already exists".format(bucketlist.name)}), 409
         if str(bucketlist.name).isspace():
             return jsonify({"message": "Enter a valid bucketlist name"}), 400
         db.session.commit()
@@ -114,9 +145,9 @@ def single_bucketlist(id):
         # deleting a bucketlist
         bucketlist = Bucketlist.query.get_or_404(id)
         if bucketlist.owner != g.user.id:
-            return jsonify({'message': 'You are not authorised to delete this bucketlist!'}), 401
+            return jsonify({
+                'message': 'You are not authorised to delete this bucketlist!'
+                }), 401
         db.session.delete(bucketlist)
         db.session.commit()
-        return jsonify({'message': 'Bucketlist successfully deleted'}), 200
-
-
+        return jsonify({'message': 'Bucketlist successfully deleted'}), 410

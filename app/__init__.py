@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, g, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -8,9 +8,10 @@ db = SQLAlchemy()
 def create_app(config_name):
     app = Flask(__name__)
 
-    cfg = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config', config_name + '.py')
+    cfg = os.path.join(os.path.dirname(os.path.dirname(
+        __file__)), 'config', config_name + '.py')
     app.config.from_pyfile(cfg)
-    app.url_map.strict_slashes=False
+    app.url_map.strict_slashes = False
 
     db.init_app(app)
 

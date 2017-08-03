@@ -1,14 +1,13 @@
 """Contains the different database models"""
 from datetime import datetime
-from dateutil import parser as datetime_parser
-from dateutil.tz import tzutc
-from flask import url_for, current_app, g, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import current_app, g, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
-
 from itsdangerous import (
-    TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
+    TimedJSONWebSignatureSerializer as
+    Serializer, BadSignature, SignatureExpired
+)
+
 
 class ValidationError(ValueError):
     pass
@@ -57,10 +56,10 @@ class Bucketlist(db.Model):
         if 'name' not in data.keys():
             return jsonify({"message": "Bucketlist name is required"}), 400
         else:
- 
+
             self.name = str(data['name']).strip()
             self.owner = g.user.id
-                
+
             return self
 
 
@@ -73,10 +72,10 @@ class Item(db.Model):
     done = db.Column(db.Boolean, default=False)
 
     def import_data(self, data, bucketlist_id):
-        if  not data['name']  and not  data['done']:
+        if not data['name'] and not data['done']:
             return "error"
         if str(data['name']).isspace():
-            return "blank" 
+            return "blank"
         if 'name' in data:
             self.name = str(data['name']).strip()
         if 'done' in data:

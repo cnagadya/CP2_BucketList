@@ -9,4 +9,4 @@ DEBUG = False
 SECRET_KEY = "".join(random.choice(
     string.ascii_uppercase + string.digits) for x in range(32))
 SQLALCHEMY_DATABASE_URI = os.environ.get(
-    'DATABASE_URL') or 'sqlite:///' + db_path
+    'DATABASE_URL') or 'postgresql://localhost/bucketlist'

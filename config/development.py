@@ -9,4 +9,4 @@ DEBUG = True
 IGNORE_AUTH = True
 SECRET_KEY = "".join(random.choice(
     string.ascii_uppercase + string.digits) for x in range(32))
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + db_path
+SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/dev' #+ db_path
